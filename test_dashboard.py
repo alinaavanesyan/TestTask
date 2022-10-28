@@ -6,7 +6,7 @@ import plotly.express as px
 import json
 from glob import glob
 import json
-from multiprocessing import Pool, RLock
+from multiprocessing import Pool
 import pandas as pd
 import numpy as np
 import pandas as pd
@@ -15,7 +15,6 @@ import dash_bootstrap_components as dbc
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
-
 
 
 hits = glob("data/**/*.json", recursive=True)
@@ -63,14 +62,16 @@ def graph1(paths, all_categories):
             name="f1",
             x = list(range(24)),
             y = list(all_categories["Number"]["f1"].values()),
-            offsetgroup = 0
+            offsetgroup = 0,
+            marker=dict(color="#393F84")
         ),
             
         go.Bar(
             name="accuracy",
             x = list(range(24)),
             y = list(all_categories["Number"]["accuracy"].values()),
-            offsetgroup = 1
+            offsetgroup = 1,
+            marker=dict(color="#8B94FF")
         ),
         ],
         layout=go.Layout(
@@ -78,7 +79,7 @@ def graph1(paths, all_categories):
             height=350,
         )
     )
-    fig2 = px.bar(y=list(average_all_categories.keys()), x=list(average_all_categories.values()),orientation="h", height=1000)
+    fig2 = px.bar(y=list(average_all_categories.keys()), x=list(average_all_categories.values()),orientation="h", height=750)
     fig2.update_layout(showlegend=False)
     
     return fig1,fig2
@@ -111,8 +112,7 @@ def graph2(hits,all_lang):
         average_all_lang[k] = average/len(all_lang[k].keys())
     average_all_lang = dict(sorted(average_all_lang.items(), key=lambda x: x[1]))
 
-    fig3 = px.scatter(x=average_all_lang.keys(), y=average_all_lang.values(), labels=dict(x="Languages", y="Result", color="Place"))
-
+    fig3 = px.scatter(x=average_all_lang.keys(), y=average_all_lang.values(), labels=dict(x="Languages", y="Result"))
     def graph_choice(name):
         graph = {}
         for b in all_lang.keys():
@@ -120,7 +120,11 @@ def graph2(hits,all_lang):
                 graph[b] = all_lang[b][name]
         return graph
 
-    fig4 = go.Figure()
+    fig4 = go.Figure(
+        layout=go.Layout(
+            height=900,
+        )
+    )
 
     fig4.add_trace(
         go.Heatmap(
@@ -132,11 +136,12 @@ def graph2(hits,all_lang):
         ygap = 2,
         colorscale="Magma"
         ))
+    
     fig4.add_trace(
         go.Heatmap(
-        name="Person",
-        z = np.array(list(graph_choice("Person").values())),
-        y = list(graph_choice("Person").keys()),
+        name="Mood",
+        z = np.array(list(graph_choice("Mood").values())),
+        y = list(graph_choice("Mood").keys()),
         x = list(range(24)),
         xgap = 2,
         ygap = 2,
@@ -152,13 +157,15 @@ def graph2(hits,all_lang):
                         method="update",
                         args=[{"visible": [True, False]},
                             ]),
-                    dict(label="Person",
+                    dict(label="Mood",
                         method="update",
                         args=[{"visible": [False, True]},
                             ]),
                 ]),
             )
         ])
+    
+    
     return fig3, fig4
 
 
@@ -178,7 +185,7 @@ if __name__ == "__main__":
                         dbc.Card(
                             dbc.CardBody([
                             html.H5("Probing score"),
-                            ]), style={"margin": "1rem"}
+                            ]), style={"margin-bottom": "1rem"}
                         ),
                         dbc.Card(
                             dbc.CardBody([
@@ -191,27 +198,27 @@ if __name__ == "__main__":
                     dbc.Col([
                         dbc.Card(
                             dbc.CardBody([
-                            dcc.Graph(figure=result2[0]),
-                            html.A("(graph.2) Languages: average feature probing score on all layers and all categories"),
-                            dcc.Graph(figure=result2[1]),
-                            html.A("(graph.3) Languages: average feature probing score on all layers (in two categories: Number and Person)"),
-                            html.P("P.S.: for the most effective use of the graph, use the zoom to better see the statistics for each layer"),
-                            ]), style={"margin": "1rem"}
-                        ),
-                        dbc.Card(
-                            dbc.CardBody([
-                            dcc.Graph(figure=result1[0]),
-                            html.A("(graph.4) Comparison of the results of different metrics (average values for all categories in each layer, category Number)"),
+                                dcc.Graph(figure=result1[0]),
+                                html.A("(graph.2) Comparison of the results of different metrics (average values for all categories in each layer, category Number)"),
+                                dcc.Graph(figure=result2[0]),
+                                html.A("(graph.3) Languages: average feature probing score on all layers and all categories"),
                             ]), 
                         ),
                     ], width=8),
+
+                    dbc.Card(
+                        dbc.CardBody([
+                            dcc.Graph(figure=result2[1]),
+                            html.A("(graph.4) Languages: average feature probing score on all layers (in two categories: Number and Mood)"),
+                            html.P("P.S.: for the most effective use of the graph, use the zoom to better see the statistics for each layer"),
+                        ]), style={"margin": "1rem"}
+                        ),
                 ]), 
 
-            ]), color = "dark"
+            ]), style={"background-color": "#1B1A20", "text-align": "center"}
         )
         ])
 
 
     app.run_server(debug=True)
-
-        
+    
