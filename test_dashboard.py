@@ -211,7 +211,7 @@ if __name__ == "__main__":
                             dcc.Graph(figure=result2[1]),
                             html.A("(graph.4) Languages: average feature probing score on all layers (in two categories: Number and Mood)"),
                             html.P("P.S.: for the most effective use of the graph, use the zoom to better see the statistics for each layer"),
-                        ]), style={"margin": "1rem"}
+                        ]), style={"margin-top": "1rem"}
                         ),
                 ]), 
 
